@@ -48,7 +48,7 @@ const RaceSchema = new mongoose.Schema<DBRace>({
     type: [
       {
         number: { type: Number, required: true },
-        name: { type: Number, required: true },
+        name: { type: String, required: true },
         history: {
           type: [
             {

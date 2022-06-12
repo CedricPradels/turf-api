@@ -1,9 +1,9 @@
 import { Page } from "puppeteer";
 
-export const racePage = (page: Page) => ({
+export const onRacePage = (page: Page) => ({
   async getDate() {
     const { year, month, day } = await page.evaluate(() => {
-      const details = document.querySelector("h1+span");
+      const details = document.querySelector(".header__nav-middle > *+span");
 
       const date = details?.textContent?.split(" - ")[0]?.split("/")!;
 
@@ -19,7 +19,7 @@ export const racePage = (page: Page) => ({
   },
   async getMeetingNumber() {
     const meetingNumber = await page.evaluate(() => {
-      const h1 = document.querySelector("h1");
+      const h1 = document.querySelector(".header__nav-middle > *");
       const number = h1?.childNodes[1].textContent
         ?.split(" - ")[0]
         .replace("R", "");
@@ -27,23 +27,23 @@ export const racePage = (page: Page) => ({
       return number;
     });
 
-    return meetingNumber;
+    return meetingNumber!;
   },
 
   async getMeetingName() {
     const meetingName = await page.evaluate(() => {
-      const details = document.querySelector("h1+span");
+      const details = document.querySelector(".header__nav-middle > *+span");
 
       const name = details?.textContent?.split(" • ")[2];
 
       return name;
     });
 
-    return meetingName;
+    return meetingName!;
   },
   async getRaceNumber() {
     const raceNumber = await page.evaluate(() => {
-      const h1 = document.querySelector("h1");
+      const h1 = document.querySelector(".header__nav-middle > *");
       const number = h1?.childNodes[1].textContent
         ?.split(" - ")[1]
         .replace("C", "");
@@ -51,44 +51,40 @@ export const racePage = (page: Page) => ({
       return number;
     });
 
-    return raceNumber;
+    return raceNumber!;
   },
 
   async getRaceName() {
     const raceName = await page.evaluate(() => {
-      const h1 = document.querySelector("h1");
+      const h1 = document.querySelector(".header__nav-middle > *");
 
       const name = h1?.childNodes[0].textContent
         ?.replace(/résultat quinté /i, "")
         .trim();
 
-      return name;
+      return name!;
     });
 
     return raceName;
   },
 
   async getResult() {
-    const nbrResults = await page.evaluate(() => {
-      return document.querySelectorAll("section > div.h3 > div:first-child")
-        .length;
-    });
     const results: { name: string; position: number; isOut: boolean }[] = [];
 
-    for (let i = 0; i < nbrResults; i++) {
-      const lineSelector = `section > div.h3:nth-child(${
-        i + 1
-      }) > div:first-child`;
+    const lines = await page.$$("section .open-horse-content-left");
 
-      const position = await page.evaluate((sel: string) => {
-        const strPosition = document.querySelector(`${sel} span:nth-child(1)`)
-          ?.textContent!;
+    for (let line of lines) {
+      const position = await page.evaluate((div: HTMLDivElement) => {
+        const strPosition =
+          div.querySelector("span:nth-child(1)")?.textContent!;
         return parseInt(strPosition, 10);
-      }, lineSelector);
+      }, line);
+
       const isOut = isNaN(position);
-      const name = await page.evaluate((sel: string) => {
-        return document.querySelector(`${sel} span:nth-child(3)`)?.textContent!;
-      }, lineSelector);
+      const name = await page.evaluate((div: HTMLDivElement) => {
+        return div.querySelector("span:nth-child(3)")?.textContent?.trim()!;
+      }, line);
+      console.log("history horse name", name);
 
       results.push({
         name,

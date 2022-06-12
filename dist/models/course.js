@@ -47,7 +47,7 @@ var RaceSchema = new _mongoose["default"].Schema({
         required: true
       },
       name: {
-        type: Number,
+        type: String,
         required: true
       },
       history: {
