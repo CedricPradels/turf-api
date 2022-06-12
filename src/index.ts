@@ -16,15 +16,15 @@ import { onRacePage } from "./scrapping/racePage";
 
   await racePage.goto(url, { waitUntil: "networkidle0" });
 
-  const horseSelector = (nthChild: string) =>
-    `.table-horses > tbody > tr:nth-child(${nthChild}) > td:first-child > a`;
-  const horseTotal = (await racePage.$$(horseSelector("n"))).length;
-
   const raceName = await onRacePage(racePage).getRaceName();
   const meetingName = await onRacePage(racePage).getMeetingName();
   const raceNumber = await onRacePage(racePage).getRaceNumber();
   const meetingNumber = await onRacePage(racePage).getMeetingNumber();
   const date = await onRacePage(racePage).getDate();
+
+  const horsesHandler = await racePage.$$<HTMLAnchorElement>(
+    ".table-horses > tbody > tr > td:first-child > a"
+  );
 
   const dbRace: DBRace = {
     date,
@@ -39,15 +39,18 @@ import { onRacePage } from "./scrapping/racePage";
     partants: [],
   };
 
-  for (let horseIdx = 0; horseIdx < horseTotal; horseIdx++) {
-    const headerLength = 1;
-    const horseUrl = await racePage.$eval(
-      horseSelector(`0n+${horseIdx + 1 + headerLength + horseIdx}`),
-      (e) => (e as HTMLAnchorElement).href
+  for (let horseHandler of horsesHandler) {
+    const horseUrl = await racePage.evaluate(
+      (e: HTMLAnchorElement) => e.href,
+      horseHandler
     );
     console.log("go to horse details page", horseUrl);
 
     await horsePage.goto(horseUrl, { waitUntil: "networkidle0" });
+
+    const horseNumber = await racePage.evaluate((anchor: HTMLAnchorElement) => {
+      return anchor.innerText.split(" - ")[0];
+    }, horseHandler);
 
     const name = await horsePage.$eval(
       "h1",
@@ -58,7 +61,7 @@ import { onRacePage } from "./scrapping/racePage";
     const partant: DBRace["partants"][number] = {
       history: [],
       name,
-      number: `${horseIdx + 1}`,
+      number: horseNumber,
     };
 
     const noHistory = (await horsePage.$("#record > center")) === null;
@@ -86,31 +89,19 @@ import { onRacePage } from "./scrapping/racePage";
         waitUntil: "networkidle0",
       });
 
-      const previewRaceSelector = (nthChild: string) =>
-        `tr:nth-child(${nthChild}) .informationscourse`;
+      const previewRacesHandler = await horsePage.$$(`tr .informationscourse`);
 
-      const previewRaceTotal = (await horsePage.$$(previewRaceSelector("n")))
-        .length;
-      for (
-        let previewRaceIdx = 0;
-        previewRaceIdx < previewRaceTotal;
-        previewRaceIdx++
-      ) {
-        const raceSelector = previewRaceSelector(`0n+${previewRaceIdx + 4}`);
-
-        const _raceName = await horsePage.$eval(
-          raceSelector,
-          (e) =>
-            (e as HTMLDataElement).childNodes[2].textContent?.split("-")[0]!
+      for (let previewRaceHandler of previewRacesHandler) {
+        const _raceName = await horsePage.evaluate(
+          (e: HTMLDataElement) => e.childNodes[2].textContent?.split("-")[0]!,
+          previewRaceHandler
         );
 
         const dateString = await (async () => {
-          const [day, month, year] = await horsePage.$eval(
-            raceSelector,
-            (e) =>
-              (e as HTMLDataElement).childNodes[0].textContent
-                ?.split("-")[0]
-                ?.split(" ")!
+          const [day, month, year] = await horsePage.evaluate(
+            (e: HTMLDataElement) =>
+              e.childNodes[0].textContent?.split("-")[0]?.split(" ")!,
+            previewRaceHandler
           );
           const parser: { [k in string]: string } = {
             JANVIER: "01",

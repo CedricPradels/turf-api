@@ -18,20 +18,22 @@ function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArra
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
 function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e2) { throw _e2; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e3) { didErr = true; err = _e3; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
-  var browser, racePage, horsePage, previewRacePage, url, horseSelector, horseTotal, raceName, meetingName, raceNumber, meetingNumber, date, dbRace, horseIdx, _yield$horsePage$$eva, _yield$horsePage$$eva2, _yield$horsePage$$eva3, headerLength, horseUrl, name, partant, noHistory, horseHistoryTotalPages, horseHistoryPage, horsePaginateUrl, previewRaceSelector, previewRaceTotal, _loop, previewRaceIdx;
+  var browser, racePage, horsePage, previewRacePage, url, raceName, meetingName, raceNumber, meetingNumber, date, horsesHandler, dbRace, _iterator, _step, _yield$horsePage$$eva, _yield$horsePage$$eva2, _yield$horsePage$$eva3, horseHandler, horseUrl, horseNumber, name, partant, noHistory, horseHistoryTotalPages, horseHistoryPage, horsePaginateUrl, previewRacesHandler, _iterator2, _step2, _loop;
 
   return _regeneratorRuntime().wrap(function _callee2$(_context3) {
     while (1) {
@@ -65,40 +67,36 @@ _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
           });
 
         case 16:
-          horseSelector = function horseSelector(nthChild) {
-            return ".table-horses > tbody > tr:nth-child(".concat(nthChild, ") > td:first-child > a");
-          };
-
-          _context3.next = 19;
-          return racePage.$$(horseSelector("n"));
-
-        case 19:
-          horseTotal = _context3.sent.length;
-          _context3.next = 22;
+          _context3.next = 18;
           return (0, _racePage.onRacePage)(racePage).getRaceName();
 
-        case 22:
+        case 18:
           raceName = _context3.sent;
-          _context3.next = 25;
+          _context3.next = 21;
           return (0, _racePage.onRacePage)(racePage).getMeetingName();
 
-        case 25:
+        case 21:
           meetingName = _context3.sent;
-          _context3.next = 28;
+          _context3.next = 24;
           return (0, _racePage.onRacePage)(racePage).getRaceNumber();
 
-        case 28:
+        case 24:
           raceNumber = _context3.sent;
-          _context3.next = 31;
+          _context3.next = 27;
           return (0, _racePage.onRacePage)(racePage).getMeetingNumber();
 
-        case 31:
+        case 27:
           meetingNumber = _context3.sent;
-          _context3.next = 34;
+          _context3.next = 30;
           return (0, _racePage.onRacePage)(racePage).getDate();
 
-        case 34:
+        case 30:
           date = _context3.sent;
+          _context3.next = 33;
+          return racePage.$$(".table-horses > tbody > tr > td:first-child > a");
+
+        case 33:
+          horsesHandler = _context3.sent;
           dbRace = {
             date: date,
             race: {
@@ -111,177 +109,185 @@ _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
             },
             partants: []
           };
-          horseIdx = 0;
+          _iterator = _createForOfIteratorHelper(horsesHandler);
+          _context3.prev = 36;
 
-        case 37:
-          if (!(horseIdx < horseTotal)) {
-            _context3.next = 103;
+          _iterator.s();
+
+        case 38:
+          if ((_step = _iterator.n()).done) {
+            _context3.next = 114;
             break;
           }
 
-          headerLength = 1;
-          _context3.next = 41;
-          return racePage.$eval(horseSelector("0n+".concat(horseIdx + 1 + headerLength + horseIdx)), function (e) {
+          horseHandler = _step.value;
+          _context3.next = 42;
+          return racePage.evaluate(function (e) {
             return e.href;
-          });
+          }, horseHandler);
 
-        case 41:
+        case 42:
           horseUrl = _context3.sent;
           console.log("go to horse details page", horseUrl);
-          _context3.next = 45;
+          _context3.next = 46;
           return horsePage["goto"](horseUrl, {
             waitUntil: "networkidle0"
           });
 
-        case 45:
-          _context3.next = 47;
+        case 46:
+          _context3.next = 48;
+          return racePage.evaluate(function (anchor) {
+            return anchor.innerText.split(" - ")[0];
+          }, horseHandler);
+
+        case 48:
+          horseNumber = _context3.sent;
+          _context3.next = 51;
           return horsePage.$eval("h1", function (e) {
             return e.innerText;
           });
 
-        case 47:
+        case 51:
           name = _context3.sent;
           console.log("get horse name: ", name);
           partant = {
             history: [],
             name: name,
-            number: "".concat(horseIdx + 1)
+            number: horseNumber
           };
-          _context3.next = 52;
+          _context3.next = 56;
           return horsePage.$("#record > center");
 
-        case 52:
+        case 56:
           _context3.t0 = _context3.sent;
           noHistory = _context3.t0 === null;
 
           if (!noHistory) {
-            _context3.next = 56;
+            _context3.next = 60;
             break;
           }
 
-          return _context3.abrupt("continue", 100);
+          return _context3.abrupt("continue", 112);
 
-        case 56:
+        case 60:
           _context3.t1 = parseInt;
-          _context3.next = 59;
+          _context3.next = 63;
           return horsePage.$eval("#record > center", function (e) {
             return e.childNodes[0].textContent;
           });
 
-        case 59:
+        case 63:
           _context3.t4 = _yield$horsePage$$eva2 = _context3.sent;
           _context3.t3 = _context3.t4 === null;
 
           if (_context3.t3) {
-            _context3.next = 63;
+            _context3.next = 67;
             break;
           }
 
           _context3.t3 = _yield$horsePage$$eva2 === void 0;
 
-        case 63:
+        case 67:
           if (!_context3.t3) {
-            _context3.next = 67;
+            _context3.next = 71;
             break;
           }
 
           _context3.t5 = void 0;
-          _context3.next = 68;
+          _context3.next = 72;
           break;
 
-        case 67:
+        case 71:
           _context3.t5 = (_yield$horsePage$$eva3 = _yield$horsePage$$eva2.match(/Page n°\d+\/(\d+)/)) === null || _yield$horsePage$$eva3 === void 0 ? void 0 : _yield$horsePage$$eva3[1];
 
-        case 68:
+        case 72:
           _context3.t6 = _yield$horsePage$$eva = _context3.t5;
           _context3.t2 = _context3.t6 !== null;
 
-          if (!_context3.t2) {
-            _context3.next = 72;
-            break;
-          }
-
-          _context3.t2 = _yield$horsePage$$eva !== void 0;
-
-        case 72:
           if (!_context3.t2) {
             _context3.next = 76;
             break;
           }
 
-          _context3.t7 = _yield$horsePage$$eva;
-          _context3.next = 77;
-          break;
+          _context3.t2 = _yield$horsePage$$eva !== void 0;
 
         case 76:
+          if (!_context3.t2) {
+            _context3.next = 80;
+            break;
+          }
+
+          _context3.t7 = _yield$horsePage$$eva;
+          _context3.next = 81;
+          break;
+
+        case 80:
           _context3.t7 = "1";
 
-        case 77:
+        case 81:
           _context3.t8 = _context3.t7;
           horseHistoryTotalPages = (0, _context3.t1)(_context3.t8, 10);
           horseHistoryPage = 1;
 
-        case 80:
+        case 84:
           if (!(horseHistoryPage <= horseHistoryTotalPages)) {
-            _context3.next = 99;
+            _context3.next = 111;
             break;
           }
 
           horsePaginateUrl = "".concat(horseUrl).concat(horseHistoryPage);
           console.log("process history page:", horsePaginateUrl);
-          _context3.next = 85;
+          _context3.next = 89;
           return horsePage["goto"](horsePaginateUrl, {
             waitUntil: "networkidle0"
           });
 
-        case 85:
-          previewRaceSelector = function previewRaceSelector(nthChild) {
-            return "tr:nth-child(".concat(nthChild, ") .informationscourse");
-          };
+        case 89:
+          _context3.next = 91;
+          return horsePage.$$("tr .informationscourse");
 
-          _context3.next = 88;
-          return horsePage.$$(previewRaceSelector("n"));
-
-        case 88:
-          previewRaceTotal = _context3.sent.length;
-          _loop = /*#__PURE__*/_regeneratorRuntime().mark(function _loop(previewRaceIdx) {
-            var raceSelector, _raceName, dateString, historyProgramUrl, raceUrl, _raceName2, _raceNumber, _meetingName, _meetingNumber, _date, results;
+        case 91:
+          previewRacesHandler = _context3.sent;
+          _iterator2 = _createForOfIteratorHelper(previewRacesHandler);
+          _context3.prev = 93;
+          _loop = /*#__PURE__*/_regeneratorRuntime().mark(function _loop() {
+            var previewRaceHandler, _raceName, dateString, historyProgramUrl, raceUrl, _raceName2, _raceNumber, _meetingName, _meetingNumber, _date, results;
 
             return _regeneratorRuntime().wrap(function _loop$(_context2) {
               while (1) {
                 switch (_context2.prev = _context2.next) {
                   case 0:
-                    raceSelector = previewRaceSelector("0n+".concat(previewRaceIdx + 4));
+                    previewRaceHandler = _step2.value;
                     _context2.next = 3;
-                    return horsePage.$eval(raceSelector, function (e) {
-                      var _childNodes$2$textCon;
+                    return horsePage.evaluate(function (e) {
+                      var _e$childNodes$2$textC;
 
-                      return (_childNodes$2$textCon = e.childNodes[2].textContent) === null || _childNodes$2$textCon === void 0 ? void 0 : _childNodes$2$textCon.split("-")[0];
-                    });
+                      return (_e$childNodes$2$textC = e.childNodes[2].textContent) === null || _e$childNodes$2$textC === void 0 ? void 0 : _e$childNodes$2$textC.split("-")[0];
+                    }, previewRaceHandler);
 
                   case 3:
                     _raceName = _context2.sent;
                     _context2.next = 6;
                     return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
-                      var _yield$horsePage$$eva4, _yield$horsePage$$eva5, day, month, year, parser;
+                      var _yield$horsePage$eval, _yield$horsePage$eval2, day, month, year, parser;
 
                       return _regeneratorRuntime().wrap(function _callee$(_context) {
                         while (1) {
                           switch (_context.prev = _context.next) {
                             case 0:
                               _context.next = 2;
-                              return horsePage.$eval(raceSelector, function (e) {
-                                var _childNodes$0$textCon, _childNodes$0$textCon2;
+                              return horsePage.evaluate(function (e) {
+                                var _e$childNodes$0$textC, _e$childNodes$0$textC2;
 
-                                return (_childNodes$0$textCon = e.childNodes[0].textContent) === null || _childNodes$0$textCon === void 0 ? void 0 : (_childNodes$0$textCon2 = _childNodes$0$textCon.split("-")[0]) === null || _childNodes$0$textCon2 === void 0 ? void 0 : _childNodes$0$textCon2.split(" ");
-                              });
+                                return (_e$childNodes$0$textC = e.childNodes[0].textContent) === null || _e$childNodes$0$textC === void 0 ? void 0 : (_e$childNodes$0$textC2 = _e$childNodes$0$textC.split("-")[0]) === null || _e$childNodes$0$textC2 === void 0 ? void 0 : _e$childNodes$0$textC2.split(" ");
+                              }, previewRaceHandler);
 
                             case 2:
-                              _yield$horsePage$$eva4 = _context.sent;
-                              _yield$horsePage$$eva5 = _slicedToArray(_yield$horsePage$$eva4, 3);
-                              day = _yield$horsePage$$eva5[0];
-                              month = _yield$horsePage$$eva5[1];
-                              year = _yield$horsePage$$eva5[2];
+                              _yield$horsePage$eval = _context.sent;
+                              _yield$horsePage$eval2 = _slicedToArray(_yield$horsePage$eval, 3);
+                              day = _yield$horsePage$eval2[0];
+                              month = _yield$horsePage$eval2[1];
+                              year = _yield$horsePage$eval2[2];
                               parser = {
                                 JANVIER: "01",
                                 FEVRIER: "02",
@@ -383,46 +389,79 @@ _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
               }
             }, _loop);
           });
-          previewRaceIdx = 0;
 
-        case 91:
-          if (!(previewRaceIdx < previewRaceTotal)) {
-            _context3.next = 96;
+          _iterator2.s();
+
+        case 96:
+          if ((_step2 = _iterator2.n()).done) {
+            _context3.next = 100;
             break;
           }
 
-          return _context3.delegateYield(_loop(previewRaceIdx), "t9", 93);
+          return _context3.delegateYield(_loop(), "t9", 98);
 
-        case 93:
-          previewRaceIdx++;
-          _context3.next = 91;
+        case 98:
+          _context3.next = 96;
           break;
-
-        case 96:
-          horseHistoryPage++;
-          _context3.next = 80;
-          break;
-
-        case 99:
-          dbRace.partants.push(partant);
 
         case 100:
-          horseIdx++;
-          _context3.next = 37;
+          _context3.next = 105;
           break;
 
-        case 103:
-          _context3.next = 105;
-          return _course.RaceModel.create(dbRace);
+        case 102:
+          _context3.prev = 102;
+          _context3.t10 = _context3["catch"](93);
+
+          _iterator2.e(_context3.t10);
 
         case 105:
-          _context3.next = 107;
+          _context3.prev = 105;
+
+          _iterator2.f();
+
+          return _context3.finish(105);
+
+        case 108:
+          horseHistoryPage++;
+          _context3.next = 84;
+          break;
+
+        case 111:
+          dbRace.partants.push(partant);
+
+        case 112:
+          _context3.next = 38;
+          break;
+
+        case 114:
+          _context3.next = 119;
+          break;
+
+        case 116:
+          _context3.prev = 116;
+          _context3.t11 = _context3["catch"](36);
+
+          _iterator.e(_context3.t11);
+
+        case 119:
+          _context3.prev = 119;
+
+          _iterator.f();
+
+          return _context3.finish(119);
+
+        case 122:
+          _context3.next = 124;
+          return _course.RaceModel.create(dbRace);
+
+        case 124:
+          _context3.next = 126;
           return browser.close();
 
-        case 107:
+        case 126:
         case "end":
           return _context3.stop();
       }
     }
-  }, _callee2);
+  }, _callee2, null, [[36, 116, 119, 122], [93, 102, 105, 108]]);
 }))();
