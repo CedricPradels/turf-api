@@ -15,7 +15,8 @@
   "dependencies": {
     "mongoose": "^6.3.4",
     "puppeteer": "^14.1.1",
-    "ramda": "^0.28.0"
+    "ramda": "^0.28.0",
+    "yup": "^0.32.11"
   },
   "scripts": {
     "test": "jest --watchAll",

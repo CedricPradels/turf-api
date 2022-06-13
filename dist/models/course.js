@@ -3,12 +3,45 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.RaceModel = void 0;
+exports.RaceModel = exports.DBRaceSchema = void 0;
 
 var _mongoose = _interopRequireDefault(require("mongoose"));
 
+var _yup = require("yup");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
+var DBRaceSchema = (0, _yup.object)({
+  date: (0, _yup.date)(),
+  race: (0, _yup.object)({
+    number: (0, _yup.string)(),
+    name: (0, _yup.string)()
+  }),
+  meeting: (0, _yup.object)({
+    number: (0, _yup.string)(),
+    name: (0, _yup.string)()
+  }),
+  history: (0, _yup.array)((0, _yup.object)({
+    number: (0, _yup.string)(),
+    name: (0, _yup.string)(),
+    history: (0, _yup.array)((0, _yup.object)({
+      race: (0, _yup.object)({
+        number: (0, _yup.string)(),
+        name: (0, _yup.string)()
+      }),
+      meeting: (0, _yup.object)({
+        number: (0, _yup.string)(),
+        name: (0, _yup.string)()
+      }),
+      results: (0, _yup.array)((0, _yup.object)({
+        isOut: (0, _yup["boolean"])(),
+        name: (0, _yup.string)(),
+        position: (0, _yup.number)()
+      }))
+    }))
+  }))
+});
+exports.DBRaceSchema = DBRaceSchema;
 var RaceSchema = new _mongoose["default"].Schema({
   date: {
     type: Date,

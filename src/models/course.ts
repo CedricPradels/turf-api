@@ -1,4 +1,50 @@
 import mongoose from "mongoose";
+import {
+  object,
+  string,
+  date,
+  StringSchema,
+  array,
+  boolean,
+  number,
+} from "yup";
+
+export const DBRaceSchema = object({
+  date: date(),
+  race: object({
+    number: string(),
+    name: string(),
+  }),
+  meeting: object({
+    number: string(),
+    name: string(),
+  }),
+  history: array(
+    object({
+      number: string(),
+      name: string(),
+      history: array(
+        object({
+          race: object({
+            number: string(),
+            name: string(),
+          }),
+          meeting: object({
+            number: string(),
+            name: string(),
+          }),
+          results: array(
+            object({
+              isOut: boolean(),
+              name: string(),
+              position: number(),
+            })
+          ),
+        })
+      ),
+    })
+  ),
+});
 
 export interface DBRace {
   partants: {

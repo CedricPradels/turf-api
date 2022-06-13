@@ -1,26 +1,36 @@
-import puppeteer from "puppeteer";
-import { DBRace, RaceModel } from "./models/course";
-import { programPage } from "./scrapping/programPage";
-import { onRacePage } from "./scrapping/racePage";
+import puppeteer, { Browser, ElementHandle, Page } from "puppeteer";
+import { DBRace, DBRaceSchema, RaceModel } from "./models/course";
+import { onProgramPage } from "./scrapping/onProgramPage";
+import { onRaceResultPage } from "./scrapping/onRaceResultPage";
+import { onRaceProgramPage } from "./scrapping/onRaceProgramPage";
+import { connectDB } from "./utils/connectDB";
 
 (async () => {
+  await connectDB();
   const browser = await puppeteer.launch();
-  const racePage = await browser.newPage();
-  const horsePage = await browser.newPage();
-  const previewRacePage = await browser.newPage();
 
   const url =
     "https://www.turfoo.fr/programmes-courses/190728/reunion1-deauville/course1-prix-du-clos-fleuri/";
+
+  const dbRace = await getRaceData(url, browser);
+  await DBRaceSchema.validate(dbRace);
+  await RaceModel.create(dbRace);
+  console.log("new DB entry");
+  await browser.close();
+})();
+
+async function getRaceData(url: string, browser: Browser): Promise<DBRace> {
+  const racePage = await browser.newPage();
 
   console.log("start scrapping race: ", url);
 
   await racePage.goto(url, { waitUntil: "networkidle0" });
 
-  const raceName = await onRacePage(racePage).getRaceName();
-  const meetingName = await onRacePage(racePage).getMeetingName();
-  const raceNumber = await onRacePage(racePage).getRaceNumber();
-  const meetingNumber = await onRacePage(racePage).getMeetingNumber();
-  const date = await onRacePage(racePage).getDate();
+  const raceName = await onRaceProgramPage(racePage).getRaceName();
+  const meetingName = await onRaceProgramPage(racePage).getMeetingName();
+  const raceNumber = await onRaceProgramPage(racePage).getRaceNumber();
+  const meetingNumber = await onRaceProgramPage(racePage).getMeetingNumber();
+  const date = await onRaceProgramPage(racePage).getDate();
 
   const horsesHandler = await racePage.$$<HTMLAnchorElement>(
     ".table-horses > tbody > tr > td:first-child > a"
@@ -39,35 +49,66 @@ import { onRacePage } from "./scrapping/racePage";
     partants: [],
   };
 
-  for (let horseHandler of horsesHandler) {
-    const horseUrl = await racePage.evaluate(
-      (e: HTMLAnchorElement) => e.href,
-      horseHandler
-    );
-    console.log("go to horse details page", horseUrl);
+  const partants = await Promise.all(
+    horsesHandler.map((horseHandler) =>
+      getHorseData(horseHandler, racePage, browser)
+    )
+  );
+  dbRace.partants = partants;
 
-    await horsePage.goto(horseUrl, { waitUntil: "networkidle0" });
+  await racePage.close();
 
-    const horseNumber = await racePage.evaluate((anchor: HTMLAnchorElement) => {
-      return anchor.innerText.split(" - ")[0];
-    }, horseHandler);
+  return dbRace;
+}
 
-    const name = await horsePage.$eval(
-      "h1",
-      (e) => (e as HTMLHeadingElement).innerText
-    );
-    console.log("get horse name: ", name);
+async function getHorseData<T extends HTMLElement>(
+  horseHandler: ElementHandle<T>,
+  racePage: Page,
+  browser: Browser
+): Promise<DBRace["partants"][number]> {
+  const horsePage = await browser.newPage();
 
-    const partant: DBRace["partants"][number] = {
-      history: [],
-      name,
-      number: horseNumber,
-    };
+  const horseUrl = await racePage.evaluate(
+    (e: HTMLAnchorElement) => e.href,
+    horseHandler
+  );
+  console.log("go to horse details page", horseUrl);
 
-    const noHistory = (await horsePage.$("#record > center")) === null;
+  await horsePage.goto(horseUrl, { waitUntil: "networkidle0" });
 
-    if (noHistory) continue;
+  const horseNumber = await racePage.evaluate((anchor: HTMLAnchorElement) => {
+    return anchor.innerText.split(" - ")[0];
+  }, horseHandler);
 
+  const horseName = await horsePage.$eval(
+    "h1",
+    (e) => (e as HTMLHeadingElement).innerText
+  );
+  console.log("get horse name: ", horseName);
+
+  const history = await getHistory(horseUrl, horsePage, browser);
+
+  const partant: DBRace["partants"][number] = {
+    history,
+    name: horseName,
+    number: horseNumber,
+  };
+
+  await horsePage.close();
+
+  return partant;
+}
+
+async function getHistory(
+  horseUrl: string,
+  horsePage: Page,
+  browser: Browser
+): Promise<DBRace["partants"][number]["history"]> {
+  const history: DBRace["partants"][number]["history"] = [];
+
+  const hasHistory = (await horsePage.$("#record > center")) !== null;
+
+  if (hasHistory) {
     const horseHistoryTotalPages = parseInt(
       (
         await horsePage.$eval(
@@ -92,74 +133,88 @@ import { onRacePage } from "./scrapping/racePage";
       const previewRacesHandler = await horsePage.$$(`tr .informationscourse`);
 
       for (let previewRaceHandler of previewRacesHandler) {
-        const _raceName = await horsePage.evaluate(
-          (e: HTMLDataElement) => e.childNodes[2].textContent?.split("-")[0]!,
+        const previewRaceData = await getPreviewRaceData(
+          browser,
+          horsePage,
           previewRaceHandler
         );
-
-        const dateString = await (async () => {
-          const [day, month, year] = await horsePage.evaluate(
-            (e: HTMLDataElement) =>
-              e.childNodes[0].textContent?.split("-")[0]?.split(" ")!,
-            previewRaceHandler
-          );
-          const parser: { [k in string]: string } = {
-            JANVIER: "01",
-            FEVRIER: "02",
-            MARS: "03",
-            AVRIL: "04",
-            MAI: "05",
-            JUIN: "06",
-            JUILLET: "07",
-            AOUT: "08",
-            SEPTEMBRE: "09",
-            OCTOBRE: "10",
-            NOVEMBRE: "11",
-            DECEMBRE: "12",
-          };
-
-          return `${year.slice(-2)}${parser[month]}${day}`;
-        })();
-
-        const historyProgramUrl = `https://www.turfoo.fr/programmes-courses/${dateString}/`;
-        await previewRacePage.goto(historyProgramUrl, {
-          waitUntil: "networkidle0",
-        });
-
-        const raceUrl = await programPage(previewRacePage).findRaceUrl(
-          _raceName
-        );
-
-        if (raceUrl !== null) {
-          console.log("found preview race url: ", raceUrl);
-          await previewRacePage.goto(raceUrl, { waitUntil: "networkidle0" });
-
-          const raceName = await onRacePage(previewRacePage).getRaceName();
-          const raceNumber = await onRacePage(previewRacePage).getRaceNumber();
-          const meetingName = await onRacePage(
-            previewRacePage
-          ).getMeetingName();
-          const meetingNumber = await onRacePage(
-            previewRacePage
-          ).getMeetingNumber();
-          const date = await onRacePage(previewRacePage).getDate();
-          const results = await onRacePage(previewRacePage).getResult();
-
-          partant.history.push({
-            date,
-            meeting: { name: meetingName, number: meetingNumber },
-            race: {
-              name: raceName,
-              number: raceNumber,
-            },
-            results,
-          });
-        }
+        history.push(previewRaceData);
       }
     }
-    dbRace.partants.push(partant);
   }
 
-  await RaceModel.create(dbRace);
-  await browser.close();
-})();
+  return history;
+}
+
+async function getPreviewRaceData(
+  browser: Browser,
+  horsePage: Page,
+  previewRaceHandler: ElementHandle
+) {
+  const previewRacePage = await browser.newPage();
+
+  const _raceName = await horsePage.evaluate(
+    (e: HTMLDataElement) => e.childNodes[2].textContent?.split("-")[0]!,
+    previewRaceHandler
+  );
+
+  const dateString = await (async () => {
+    const [day, month, year] = await horsePage.evaluate(
+      (e: HTMLDataElement) =>
+        e.childNodes[0].textContent?.split("-")[0]?.split(" ")!,
+      previewRaceHandler
+    );
+    const parser: { [k in string]: string } = {
+      JANVIER: "01",
+      FEVRIER: "02",
+      MARS: "03",
+      AVRIL: "04",
+      MAI: "05",
+      JUIN: "06",
+      JUILLET: "07",
+      AOUT: "08",
+      SEPTEMBRE: "09",
+      OCTOBRE: "10",
+      NOVEMBRE: "11",
+      DECEMBRE: "12",
+    };
+
+    return `${year.slice(-2)}${parser[month]}${day}`;
+  })();
+
+  const historyProgramUrl = `https://www.turfoo.fr/programmes-courses/${dateString}/`;
+  await previewRacePage.goto(historyProgramUrl, {
+    waitUntil: "networkidle0",
+  });
+
+  const raceUrl = await onProgramPage(previewRacePage).findRaceUrl(_raceName);
+
+  if (raceUrl !== null) {
+    console.log("found preview race url: ", raceUrl);
+    await previewRacePage.goto(raceUrl, { waitUntil: "networkidle0" });
+
+    const raceName = await onRaceResultPage(previewRacePage).getRaceName();
+    const raceNumber = await onRaceResultPage(previewRacePage).getRaceNumber();
+    const meetingName = await onRaceResultPage(
+      previewRacePage
+    ).getMeetingName();
+    const meetingNumber = await onRaceResultPage(
+      previewRacePage
+    ).getMeetingNumber();
+    const date = await onRaceResultPage(previewRacePage).getDate();
+    const results = await onRaceResultPage(previewRacePage).getResult();
+  }
+  await previewRacePage.close();
+
+  const previewRaceData = {
+    date,
+    meeting: { name: meetingName, number: meetingNumber },
+    race: {
+      name: raceName,
+      number: raceNumber,
+    },
+    results,
+  };
+
+  return previewRaceData;
+}

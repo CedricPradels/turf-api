@@ -192,7 +192,7 @@ var onRacePage = function onRacePage(page) {
 
               case 7:
                 if ((_step = _iterator.n()).done) {
-                  _context6.next = 20;
+                  _context6.next = 19;
                   break;
                 }
 
@@ -217,43 +217,42 @@ var onRacePage = function onRacePage(page) {
 
               case 15:
                 name = _context6.sent;
-                console.log("history horse name", name);
                 results.push({
                   name: name,
                   position: isOut ? 0 : position,
                   isOut: isOut
                 });
 
-              case 18:
+              case 17:
                 _context6.next = 7;
                 break;
 
-              case 20:
-                _context6.next = 25;
+              case 19:
+                _context6.next = 24;
                 break;
 
-              case 22:
-                _context6.prev = 22;
+              case 21:
+                _context6.prev = 21;
                 _context6.t0 = _context6["catch"](5);
 
                 _iterator.e(_context6.t0);
 
-              case 25:
-                _context6.prev = 25;
+              case 24:
+                _context6.prev = 24;
 
                 _iterator.f();
 
-                return _context6.finish(25);
+                return _context6.finish(24);
 
-              case 28:
+              case 27:
                 return _context6.abrupt("return", results);
 
-              case 29:
+              case 28:
               case "end":
                 return _context6.stop();
             }
           }
-        }, _callee6, null, [[5, 22, 25, 28]]);
+        }, _callee6, null, [[5, 21, 24, 27]]);
       }))();
     }
   };

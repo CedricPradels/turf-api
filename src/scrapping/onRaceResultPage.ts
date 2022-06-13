@@ -1,6 +1,6 @@
 import { Page } from "puppeteer";
 
-export const onRacePage = (page: Page) => ({
+export const onRaceResultPage = (page: Page) => ({
   async getDate() {
     const { year, month, day } = await page.evaluate(() => {
       const details = document.querySelector(".header__nav-middle > *+span");
@@ -84,7 +84,6 @@ export const onRacePage = (page: Page) => ({
       const name = await page.evaluate((div: HTMLDivElement) => {
         return div.querySelector("span:nth-child(3)")?.textContent?.trim()!;
       }, line);
-      console.log("history horse name", name);
 
       results.push({
         name,
