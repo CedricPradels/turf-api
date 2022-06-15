@@ -1,13 +1,12 @@
 # Todo
 
-- Parralellize scrap flows
+- Define how many parrallels connections allowed (page queue ?)
 - Add scrap step data schema validation
 - Add logger
 
 # Ideas
 
-- Define how many parrallels connections allowed (page queue ?)
-
 # Done
 
+- Parralellize scrap flows
 - Use JSHandlers loops instead of length loop

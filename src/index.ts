@@ -7,7 +7,7 @@ import { connectDB } from "./utils/connectDB";
 
 (async () => {
   await connectDB();
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({ timeout: 60000 });
 
   const url =
     "https://www.turfoo.fr/programmes-courses/190728/reunion1-deauville/course1-prix-du-clos-fleuri/";
@@ -24,7 +24,7 @@ async function getRaceData(url: string, browser: Browser): Promise<DBRace> {
 
   console.log("start scrapping race: ", url);
 
-  await racePage.goto(url, { waitUntil: "networkidle0" });
+  await racePage.goto(url, { waitUntil: "networkidle0", timeout: 60000 });
 
   const raceName = await onRaceProgramPage(racePage).getRaceName();
   const meetingName = await onRaceProgramPage(racePage).getMeetingName();
@@ -74,7 +74,7 @@ async function getHorseData<T extends HTMLElement>(
   );
   console.log("go to horse details page", horseUrl);
 
-  await horsePage.goto(horseUrl, { waitUntil: "networkidle0" });
+  await horsePage.goto(horseUrl, { waitUntil: "networkidle0", timeout: 60000 });
 
   const horseNumber = await racePage.evaluate((anchor: HTMLAnchorElement) => {
     return anchor.innerText.split(" - ")[0];
@@ -104,7 +104,7 @@ async function getHistory(
   horsePage: Page,
   browser: Browser
 ): Promise<DBRace["partants"][number]["history"]> {
-  const history: DBRace["partants"][number]["history"] = [];
+  let history: DBRace["partants"][number]["history"] = [];
 
   const hasHistory = (await horsePage.$("#record > center")) !== null;
 
@@ -128,18 +128,29 @@ async function getHistory(
       console.log("process history page:", horsePaginateUrl);
       await horsePage.goto(horsePaginateUrl, {
         waitUntil: "networkidle0",
+        timeout: 60000,
       });
 
       const previewRacesHandler = await horsePage.$$(`tr .informationscourse`);
 
-      for (let previewRaceHandler of previewRacesHandler) {
-        const previewRaceData = await getPreviewRaceData(
-          browser,
-          horsePage,
-          previewRaceHandler
-        );
-        history.push(previewRaceData);
-      }
+      history = history.concat(
+        (
+          await Promise.all(
+            previewRacesHandler.map((previewRaceHandler) =>
+              getPreviewRaceData(browser, horsePage, previewRaceHandler)
+            )
+          )
+        ).filter(<T>(x: T | null): x is T => x !== null)
+      );
+
+      // for (let previewRaceHandler of previewRacesHandler) {
+      //   const previewRaceData = await getPreviewRaceData(
+      //     browser,
+      //     horsePage,
+      //     previewRaceHandler
+      //   );
+      //   previewRaceData !== null && history.push(previewRaceData);
+      // }
     }
   }
 
@@ -185,13 +196,17 @@ async function getPreviewRaceData(
   const historyProgramUrl = `https://www.turfoo.fr/programmes-courses/${dateString}/`;
   await previewRacePage.goto(historyProgramUrl, {
     waitUntil: "networkidle0",
+    timeout: 60000,
   });
 
   const raceUrl = await onProgramPage(previewRacePage).findRaceUrl(_raceName);
 
   if (raceUrl !== null) {
-    console.log("found preview race url: ", raceUrl);
-    await previewRacePage.goto(raceUrl, { waitUntil: "networkidle0" });
+    console.log("preview race url: ", raceUrl);
+    await previewRacePage.goto(raceUrl, {
+      waitUntil: "networkidle0",
+      timeout: 60000,
+    });
 
     const raceName = await onRaceResultPage(previewRacePage).getRaceName();
     const raceNumber = await onRaceResultPage(previewRacePage).getRaceNumber();
@@ -203,18 +218,20 @@ async function getPreviewRaceData(
     ).getMeetingNumber();
     const date = await onRaceResultPage(previewRacePage).getDate();
     const results = await onRaceResultPage(previewRacePage).getResult();
+
+    const previewRaceData = {
+      date,
+      meeting: { name: meetingName, number: meetingNumber },
+      race: {
+        name: raceName,
+        number: raceNumber,
+      },
+      results,
+    };
+
+    return previewRaceData;
   }
   await previewRacePage.close();
 
-  const previewRaceData = {
-    date,
-    meeting: { name: meetingName, number: meetingNumber },
-    race: {
-      name: raceName,
-      number: raceNumber,
-    },
-    results,
-  };
-
-  return previewRaceData;
+  return null;
 }

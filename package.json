@@ -22,6 +22,6 @@
     "test": "jest --watchAll",
     "watch:ts": "babel src --watch --out-dir dist --extensions .ts",
     "watch:js": "nodemon --watch dist dist/index.js",
-    "dev": "concurrently \"yarn:watch:ts\" \"yarn:watch:js\""
+    "dev": "concurrently \"npm:watch:ts\" \"npm:watch:js\""
   }
 }
